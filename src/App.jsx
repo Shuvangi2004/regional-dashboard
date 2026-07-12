@@ -1,196 +1,143 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// INITIAL DATA MODEL
-const INITIAL_DATA = {
-  leaders: [
-    { region: "North", leaderName: "Aarav Sharma", email: "aarav.s@company.com", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
-    { region: "South", leaderName: "Priya Nair", email: "priya.n@company.com", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80" },
-    { region: "West", leaderName: "Rohan Mehta", email: "rohan.m@company.com", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" },
-    { region: "East", leaderName: "Ananya Roy", email: "ananya.r@company.com", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" },
-  ],
-  requests: [
-    { id: 101, region: "North", leader: "Aarav Sharma", requestText: "Budget approval for Q3 event marketing drive", date: "2026-07-01", status: "pending" },
-    { id: 102, region: "North", leader: "Aarav Sharma", requestText: "New laptop requisition for team lead position", date: "2026-06-25", status: "approved" },
-    { id: 103, region: "South", leader: "Priya Nair", requestText: "Venue booking advance payment for annual meetup", date: "2026-07-05", status: "approved" },
-    { id: 104, region: "West", leader: "Rohan Mehta", requestText: "Travel allowance reimbursement for site visits", date: "2026-07-10", status: "pending" },
-    { id: 105, region: "South", leader: "Priya Nair", requestText: "Sponsorship tier upgrade request for regional expo", date: "2026-07-11", status: "pending" },
-    { id: 106, region: "East", leader: "Ananya Roy", requestText: "Logistics vendor retainer renewal", date: "2026-07-09", status: "approved" }
-  ]
-};
-
-export default function App() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("All");
-  const [requests, setRequests] = useState(INITIAL_DATA.requests);
-
-  // 1. FILTER LOGIC: Handles search bar input and dropdown selection
-  const filteredRequests = requests.filter((req) => {
-    const matchesRegionSelect =
-      selectedRegion === "All" || req.region.toLowerCase() === selectedRegion.toLowerCase();
-
-    const matchesSearchTerm =
-      req.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.leader.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.requestText.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesRegionSelect && matchesSearchTerm;
-  });
-
-  // 2. LEADER MATCHING: Finds leader details for single region view
-  const activeLeader = INITIAL_DATA.leaders.find(
-    (l) => l.region.toLowerCase() === selectedRegion.toLowerCase() ||
-           l.region.toLowerCase() === searchQuery.trim().toLowerCase()
-  );
-
-  // 3. ACTION HANDLER: Flip request status dynamically
-  const handleStatusChange = (requestId, newStatus) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === requestId ? { ...req, status: newStatus } : req
-      )
-    );
-  };
-
+// Sample Dashboard Component
+function Dashboard({ user, onLogout }) {
   return (
-    <div className="p-4 sm:p-8 max-w-6xl mx-auto">
-      
-      {/* HEADER SECTION */}
-      <header className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-50 p-8 font-sans">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Top Navigation Bar */}
+        <header className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Manager Regional Portal</h1>
-            <p className="text-sm text-slate-500">Track team leader submissions and issue approvals</p>
+            <p className="text-slate-500 text-sm">Welcome back, <span className="font-semibold text-slate-700">{user.email}</span></p>
           </div>
+          <button
+            onClick={onLogout}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition"
+          >
+            Log Out
+          </button>
+        </header>
 
-          {/* SEARCH & FILTER CONTROLS */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search region, leader..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-60 pl-3 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50"
-              />
-            </div>
-
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-medium text-slate-700"
-            >
-              <option value="All">All Regions</option>
-              {INITIAL_DATA.leaders.map((item) => (
-                <option key={item.region} value={item.region}>
-                  {item.region} Region
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </header>
-
-      {/* TEAM LEADER CARD (Shows when specific region is active) */}
-      {activeLeader && (
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img
-              src={activeLeader.avatar}
-              alt={activeLeader.leaderName}
-              className="w-12 h-12 rounded-full object-cover border-2 border-indigo-300"
-            />
-            <div>
-              <span className="text-xs uppercase font-bold tracking-wider text-indigo-200">
-                {activeLeader.region} Region Leader
-              </span>
-              <h2 className="text-xl font-bold">{activeLeader.leaderName}</h2>
-            </div>
-          </div>
-          <span className="text-xs bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg text-indigo-100 font-mono hidden sm:inline-block">
-            {activeLeader.email}
-          </span>
-        </div>
-      )}
-
-      {/* REQUEST HISTORY TABLE */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="font-semibold text-slate-800">Request Audit Trail</h3>
-          <span className="text-xs font-medium bg-slate-200 text-slate-600 px-2.5 py-1 rounded-full">
-            {filteredRequests.length} Entries
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                <th className="p-4">ID</th>
-                <th className="p-4">Region</th>
-                <th className="p-4">Team Leader</th>
-                <th className="p-4">Request Description</th>
-                <th className="p-4">Date</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-right">Manager Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {filteredRequests.length > 0 ? (
-                filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-slate-50/80 transition">
-                    <td className="p-4 font-mono text-xs text-slate-400">#{req.id}</td>
-                    <td className="p-4 font-semibold text-slate-700">{req.region}</td>
-                    <td className="p-4 text-slate-600">{req.leader}</td>
-                    <td className="p-4 text-slate-800 font-medium max-w-xs">{req.requestText}</td>
-                    <td className="p-4 text-slate-400 text-xs">{req.date}</td>
-                    <td className="p-4 text-center">
-                      
-                      {/* COLOR-CODED STATUS TAGS */}
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                          req.status === "approved"
-                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                            : "bg-rose-100 text-rose-700 border border-rose-200"
-                        }`}
-                      >
-                        {req.status}
-                      </span>
-
-                    </td>
-                    <td className="p-4 text-right">
-                      {/* MANAGER ACTION BUTTONS */}
-                      <div className="flex justify-end gap-2">
-                        {req.status === "pending" ? (
-                          <button
-                            onClick={() => handleStatusChange(req.id, "approved")}
-                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition"
-                          >
-                            Approve
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleStatusChange(req.id, "pending")}
-                            className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition"
-                          >
-                            Revert
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="p-12 text-center text-slate-400">
-                    No matching requests found for your search query.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* Dashboard Main Content */}
+        <main className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center py-16">
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Regional Request Audit Trail</h2>
+          <p className="text-slate-500 max-w-md mx-auto">
+            Your interactive dashboard components go here! (You can paste your table or regional filters inside this section).
+          </p>
+        </main>
       </div>
+    </div>
+  );
+}
 
+// Main App Component with Authentication Logic
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  // Check if user was previously logged in on page refresh
+  useEffect(() => {
+    const savedUser = localStorage.getItem('isLoggedIn');
+    if (savedUser === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    
+    // Simple mock validation (Accepts any email with password: 'password123' or non-empty password)
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    // Success login
+    setError('');
+    setIsAuthenticated(true);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userEmail', email);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+  };
+
+  const storedEmail = localStorage.getItem('userEmail') || email || 'manager@region.com';
+
+  return (
+    <div>
+      {!isAuthenticated ? (
+        /* Login Page View */
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
+          <div className="bg-white w-full max-w-md rounded-2xl p-8 shadow-2xl space-y-6">
+            <div className="text-center space-y-2">
+              <div className="inline-flex p-3 bg-indigo-50 text-indigo-600 rounded-xl mb-2">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900">Portal Login</h1>
+              <p className="text-slate-500 text-sm">Sign in to access regional manager approvals</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="manager@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200 text-sm"
+              >
+                Sign In to Dashboard
+              </button>
+            </form>
+
+            <p className="text-center text-xs text-slate-400">
+              Demo Mode: Enter any valid email & password (6+ chars)
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Protected Dashboard View */
+        <Dashboard user={{ email: storedEmail }} onLogout={handleLogout} />
+      )}
     </div>
   );
 }
